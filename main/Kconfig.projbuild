@@ -1,17 +1,74 @@
 menu "EdgeVault Configuration"
 
+    
     config EV_DEVICE_NAME
         string "Device name"
         default "EdgeVault"
+        help
+            Configure the device name
 
     config EV_SENSOR_POLL_INTERVAL_MS
         int "Sensor poll interval (ms)"
         default 1000
         range 100 60000
+        help
+            Configure the intervals at which the system collects the sensors data
 
     config EV_MODBUS_POLL_INTERVAL_MS
         int "Modbus poll interval (ms)"
         default 5000
         range 500 60000
+        help
+            Configure the intervals at which the system collects the modbus RTU data
+
+    menu "I2C Bus"
+        config EV_I2C_SDA_GPIO
+            int "I2C SDA Pin"
+            default 8
+            range 0 48
+            help
+                Configure the I2C Serial Data pin which your board exposes
+
+        config EV_I2C_SCL_GPIO
+            int "I2C SCL Pin"
+            default 9
+            range 0 48
+            help
+                Configure the I2C serial clock pin which your board exposes
+
+        config EV_I2C_FREQ_HZ
+            int "I2C Frequency"
+            default 100000
+            range 10000 400000
+            help
+                Configure the I2C bus clock frequency in Hz
+    endmenu
+
+    menu "Sensor Addresses"
+        config EV_LM75A_I2C_ADDR
+            hex "LM75A Address"
+            default 0x48
+            range 0x48 0x4F
+            help
+                Configure your LM75A temperature sensor I2C slave address if any
+        
+        config EV_DS3231_I2C_ADDR
+            hex "DS3231 Address"
+            default 0x68 0x68
+            range 0x68
+            help
+                Configure your DS3231 module I2C slave address if any
+    endmenu
+
+    menu "GPIO"
+
+        config EV_STATUS_LED_GPIO
+            int "Status LED"
+            default 6
+            range 0 48
+            help
+                Default set to GPIO6 (Sensor AD header), which is exposed on this board.
+
+    endmenu
 
 endmenu
