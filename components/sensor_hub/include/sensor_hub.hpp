@@ -2,8 +2,8 @@
 
 #include "ev_types.hpp"
 
-namespace sensorHub {
+namespace sensorhub {
 
-    void local_sensor_task(void *pvParamters);
+    void local_sensor_task(void *pvParameters);
 
 }

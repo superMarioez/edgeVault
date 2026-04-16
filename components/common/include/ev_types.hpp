@@ -57,6 +57,4 @@ struct SensorReading {
     Quality quality_;
 };
 
-
-
 } // namespace ev

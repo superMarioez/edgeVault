@@ -3,8 +3,8 @@
 #include "ev_types.hpp"
 
 
-namespace dataPipeline {
+namespace datapipeline {
 
-    void data_pipeline_task(void *pvParamters);
+    void data_pipeline_task(void *pvParameters);
 
 }

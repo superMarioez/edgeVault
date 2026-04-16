@@ -1,10 +1,10 @@
 #include "sensor_hub.hpp"
 
-const char *TAG = "local sensor task";
+namespace sensorhub {
 
-namespace sensorHub {
+    static const char *TAG = "local sensor task";
 
-    void local_sensor_task(void *pvParamters) {
+    void local_sensor_task(void *pvParameters) {
 
         ESP_LOGI(TAG, "lst start");
         for (;;) {
