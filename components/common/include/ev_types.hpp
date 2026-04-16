@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "freertos/event_groups.h"
+#include "esp_log.h"
 
 namespace ev {
 
@@ -28,15 +31,15 @@ enum class SystemEvent : EventBits_t {
 };
 
 inline constexpr SystemEvent operator|(SystemEvent a, SystemEvent b) {
-    return static_cast<SystemEvent>(static_cast<EventBit_t>(a) | static_cast<EventBit_t>(b));
+    return static_cast<SystemEvent>(static_cast<EventBits_t>(a) | static_cast<EventBits_t>(b));
 }
 
 inline constexpr SystemEvent operator& (SystemEvent a, SystemEvent b) {
-    return static_cast<SystemEvent>(static_cast<EventBit_t>(a) & static_cast<EventBit_t>(b));
+    return static_cast<SystemEvent>(static_cast<EventBits_t>(a) & static_cast<EventBits_t>(b));
 }
 
-inline constexpr EventBit_t to_bits(SystemEvent e) {
-    return static_cast<EventBit_t>(e);
+inline constexpr EventBits_t to_bits(SystemEvent e) {
+    return static_cast<EventBits_t>(e);
 }
 
 namespace config {

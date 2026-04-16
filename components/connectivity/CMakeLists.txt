@@ -1,4 +1,5 @@
 idf_component_register(
-    SRCS "src/ev_types.cpp"
+    SRC_DIRS "src"
     INCLUDE_DIRS "include"
+    REQUIRES "common"
 )
