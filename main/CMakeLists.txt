@@ -1,5 +1,5 @@
 idf_component_register(
     SRCS "main.cpp"
     INCLUDE_DIRS "."
-    PRIV_REQUIRES "sensor_hub" "connectivity" "data_pipeline"
+    REQUIRES "sensor_hub" "connectivity" "data_pipeline" driver
 )

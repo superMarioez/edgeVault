@@ -54,8 +54,8 @@ menu "EdgeVault Configuration"
         
         config EV_DS3231_I2C_ADDR
             hex "DS3231 Address"
-            default 0x68 0x68
-            range 0x68
+            default 0x68
+            range 0x68 0x68
             help
                 Configure your DS3231 module I2C slave address if any
     endmenu
