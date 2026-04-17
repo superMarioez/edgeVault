@@ -4,6 +4,7 @@
 #include "sensor_hub.hpp"
 #include "data_pipeline.hpp"
 #include "network_manager.hpp"
+#include "lm75a.hpp"
 
 namespace {
 const char* TAG = "edgevault";
@@ -33,8 +34,6 @@ extern "C" void app_main(void)
 
     // create the i2c master bus
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_cfg, &sensor_hub_data.i2c_handle_));
-
-
 
     configASSERT(xTaskCreatePinnedToCore(
         sensorhub::local_sensor_task,
