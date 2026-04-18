@@ -4,12 +4,11 @@
 #include "sensor_hub.hpp"
 #include "data_pipeline.hpp"
 #include "network_manager.hpp"
-#include "lm75a.hpp"
-#include "ds3231.hpp"
 
 namespace {
 const char* TAG = "edgevault";
-sensorhub::SensorTaskContext sensor_hub_data = {};
+sensorhub::SensorHubContext sensor_hub_params = {};
+datapipeline::DataPipelineContext data_pipeline_params = {};
 }
 
 extern "C" void app_main(void)
@@ -31,16 +30,31 @@ extern "C" void app_main(void)
     i2c_bus_cfg.glitch_ignore_cnt = 7;
     i2c_bus_cfg.clk_source = I2C_CLK_SRC_DEFAULT;
 
-    sensor_hub_data.system_events_handle_ = system_events_handle;
+    // provide the system events handle tasks that consume it.
+    sensor_hub_params.system_events_h_ = system_events_handle;
+    data_pipeline_params.system_events_h_ = system_events_handle;
 
     // create the i2c master bus
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_cfg, &sensor_hub_data.i2c_handle_));
+    i2c_master_bus_handle_t i2c_bus = {};
+    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_cfg, &i2c_bus));
 
+    // provide the master bus handle to the local sensor task context
+    sensor_hub_params.i2c_bus_h_ = i2c_bus;
+
+    // create the sensor data queue
+    QueueHandle_t sensor_q_h = xQueueCreate(ev::config::SENSOR_QUEUE_DEPTH, sizeof(ev::SensorReading));
+    ESP_ERROR_CHECK(sensor_q_h ? ESP_OK : ESP_ERR_NO_MEM);
+
+    // provide the queue handle to it's producers/consumers
+    sensor_hub_params.data_queue_h_ = sensor_q_h;
+    data_pipeline_params.data_queue_h_ = sensor_q_h;
+
+    /* spawn the system's tasks */
     configASSERT(xTaskCreatePinnedToCore(
         sensorhub::local_sensor_task,
         "sensor_hub",
         ev::config::TASK_STACK_SIZE_DEFAULT,
-        static_cast<void*>(&sensor_hub_data),
+        static_cast<void*>(&sensor_hub_params),
         5,
         nullptr,
         1
@@ -50,7 +64,7 @@ extern "C" void app_main(void)
         datapipeline::data_pipeline_task,
         "data_pipe",
         ev::config::TASK_STACK_SIZE_DEFAULT,
-        static_cast<void*>(system_events_handle),
+        static_cast<void*>(&data_pipeline_params),
         4,
         nullptr,
         1
