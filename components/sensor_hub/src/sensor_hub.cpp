@@ -2,6 +2,7 @@
 #include "lm75a.hpp"
 #include "ds3231.hpp"
 #include <cmath>
+#include "driver/gpio.h"
 
 namespace sensorhub {
 
@@ -10,6 +11,17 @@ namespace sensorhub {
     void local_sensor_task(void *pvParameters) {
 
         ESP_LOGI(TAG, "sensor task start");
+
+        // configure a status LED
+        gpio_config_t gpio_cfg = {};
+        gpio_cfg.mode = GPIO_MODE_OUTPUT;
+        gpio_cfg.pull_up_en = GPIO_PULLUP_DISABLE;
+        gpio_cfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        gpio_cfg.pin_bit_mask = 1ULL << CONFIG_EV_STATUS_LED_GPIO;
+        gpio_cfg.intr_type = GPIO_INTR_DISABLE;
+        ESP_ERROR_CHECK(gpio_config(
+            &gpio_cfg
+        ));
 
         SensorHubContext* sensorHub_ctx = static_cast<SensorHubContext*>(pvParameters);
         ev::SensorReading sensor_readings = {};
@@ -24,6 +36,12 @@ namespace sensorhub {
 
         for (;;) {
 
+            // a status LED indicating the system is actively sampling
+            gpio_set_level(
+                static_cast<gpio_num_t>(CONFIG_EV_STATUS_LED_GPIO),
+                1
+            );
+
             /* timestamp calculation */
             ret = rtc_sensor.read_time_date(out_time);
             if (ret != ESP_OK) {
@@ -32,7 +50,7 @@ namespace sensorhub {
             }
             else {
                 time_t ss = mktime(&out_time);
-                if (ss != static_cast<time_t>(-1)) sensor_readings.timestamp_ms_ = ss * 1000;
+                if (ss != static_cast<time_t>(-1)) sensor_readings.timestamp_ms_ = static_cast<int64_t>(ss) * 1000;
                 else sensor_readings.timestamp_ms_ = 0;
             }
 
@@ -64,6 +82,10 @@ namespace sensorhub {
                 ESP_LOGW(TAG, "Queue was full, discarded oldest value");
             }
 
+            gpio_set_level(
+                static_cast<gpio_num_t>(CONFIG_EV_STATUS_LED_GPIO),
+                0
+            );
             vTaskDelay(pdMS_TO_TICKS(CONFIG_EV_SENSOR_POLL_INTERVAL_MS));
         }
     }
