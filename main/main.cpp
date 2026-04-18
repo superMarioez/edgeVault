@@ -5,6 +5,7 @@
 #include "data_pipeline.hpp"
 #include "network_manager.hpp"
 #include "lm75a.hpp"
+#include "ds3231.hpp"
 
 namespace {
 const char* TAG = "edgevault";
