@@ -30,6 +30,11 @@ enum class SystemEvent : EventBits_t {
     LowBattery = (1 << 4)
 };
 
+struct SensorInfo {
+    const char* sensor;
+    const char* unit;
+};
+
 inline constexpr SystemEvent operator|(SystemEvent a, SystemEvent b) {
     return static_cast<SystemEvent>(static_cast<EventBits_t>(a) | static_cast<EventBits_t>(b));
 }
@@ -40,6 +45,55 @@ inline constexpr SystemEvent operator& (SystemEvent a, SystemEvent b) {
 
 inline constexpr EventBits_t to_bits(SystemEvent e) {
     return static_cast<EventBits_t>(e);
+}
+
+inline constexpr SensorInfo ssr_id_to_str(SensorSource ssr_src) {
+    
+    SensorInfo ssr_info = {};
+    switch(ssr_src) {
+        case SensorSource::Adc:
+        ssr_info.sensor = "ADC";
+        ssr_info.unit = "";
+        break;
+        
+        case SensorSource::Bme280:
+        ssr_info.sensor = "BME280";
+        ssr_info.unit = "";
+        break;
+        
+        case SensorSource::Ds3231Temp:
+        ssr_info.sensor = "DS3231";
+        ssr_info.unit = "";
+        break;
+
+        case SensorSource::Lm75a:
+        ssr_info.sensor = "LM75A";
+        ssr_info.unit = "Celsius";
+        break;
+
+        case SensorSource::Modbus:
+        ssr_info.sensor = "MODBUS";
+        ssr_info.unit = "";
+        break;
+    }
+
+    return ssr_info;
+}
+
+inline constexpr const char* quality_to_str(Quality quality) {
+
+    switch(quality) {
+        case Quality::Good:
+        return "GOOD";
+
+        case Quality::Stale:
+        return "STALE";
+
+        case Quality::Error:
+        return "ERROR";
+    }
+
+    return "UNKNOWN";
 }
 
 namespace config {
@@ -56,5 +110,7 @@ struct SensorReading {
     SensorSource sensor_;
     Quality quality_;
 };
+
+
 
 } // namespace ev
