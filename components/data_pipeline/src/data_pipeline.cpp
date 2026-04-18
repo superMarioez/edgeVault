@@ -1,5 +1,6 @@
 #include "data_pipeline.hpp"
 #include "inttypes.h"
+#include <cmath>
 
 namespace datapipeline {
 
@@ -24,7 +25,7 @@ namespace datapipeline {
 
                 ESP_LOGW(
                     TAG,
-                    "Unable to receive data within the specified timeout",
+                    "Unable to receive data within the specified timeout"
                 );
 
                 continue;
@@ -40,15 +41,25 @@ namespace datapipeline {
             }
 
             else {
-                ESP_LOGI(
-                    TAG,
-                    "[%" PRId64 "] %s | value = %0.2f %s | quality= %s ",
-                    ssr_buff.timestamp_ms_,
-                    ev::ssr_id_to_str(ssr_buff.sensor_).sensor,
-                    ssr_buff.value_,
-                    ev::ssr_id_to_str(ssr_buff.sensor_).unit,
-                    ev::quality_to_str(ssr_buff.quality_)
-                );
+
+                if (std::isnan(ssr_buff.value_))
+                    ESP_LOGE(
+                        TAG,
+                        "[%" PRId64 "] %s | NAN",
+                        ssr_buff.timestamp_ms_,
+                        ev::ssr_id_to_str(ssr_buff.sensor_).sensor
+                    );
+                    
+                else
+                    ESP_LOGI(
+                        TAG,
+                        "[%" PRId64 "] %s | value = %0.2f %s | quality= %s ",
+                        ssr_buff.timestamp_ms_,
+                        ev::ssr_id_to_str(ssr_buff.sensor_).sensor,
+                        ssr_buff.value_,
+                        ev::ssr_id_to_str(ssr_buff.sensor_).unit,
+                        ev::quality_to_str(ssr_buff.quality_)
+                    );
             }
         }
     }
