@@ -10,7 +10,7 @@ namespace sensorhub {
 
         public:
 
-            explicit AdcBattery();
+            AdcBattery();
             ~AdcBattery();
 
             AdcBattery(const AdcBattery&) = delete;
@@ -18,11 +18,11 @@ namespace sensorhub {
             AdcBattery(AdcBattery&& other) noexcept;
             AdcBattery& operator=(AdcBattery&& other) noexcept;
 
-            esp_err_t read_voltage_mv(uint32_t& out_mv) const;
+            esp_err_t read_voltage_mv(int& out_mv) const;
 
         private:
 
-            adc_oneshot_unit_handle_t adc_handle_ = {};
+            adc_oneshot_unit_handle_t adc_handle_ = nullptr;
             adc_cali_handle_t cali_handle_ = nullptr;
     };
 

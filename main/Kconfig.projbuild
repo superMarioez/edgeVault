@@ -71,4 +71,24 @@ menu "EdgeVault Configuration"
 
     endmenu
 
+    menu "Battery ADC"
+
+        config EV_BATTERY_ADC_CHANNEL
+            int "Adc Channel"
+            default 3
+            range 0 9
+            help
+                ADC channel, defaulted to 3, you can change according to your hardware
+            
+
+        config EV_BATTERY_DIVIDER_RATIO_X10
+            int "Adc voltage divider"
+            default 10
+            range 10 10
+            help
+                ADC voltage divider value
+
+
+    endmenu
+
 endmenu
