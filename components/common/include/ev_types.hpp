@@ -13,7 +13,8 @@ enum class SensorSource : uint8_t {
     Lm75a,
     Ds3231Temp,
     Adc,
-    Bme280
+    Bme280,
+    Count
 };
 
 enum class Quality : uint8_t {
@@ -74,6 +75,9 @@ inline constexpr SensorInfo ssr_id_to_str(SensorSource ssr_src) {
         case SensorSource::Modbus:
         ssr_info.sensor = "MODBUS";
         ssr_info.unit = "";
+        break;
+
+        default:
         break;
     }
 
