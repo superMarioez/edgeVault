@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nvs_flash.h"
-#include "driver/nvs.h"
+#include "nvs.h"
 #include "esp_err.h"
 #include <cstdint>
 
