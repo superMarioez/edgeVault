@@ -4,6 +4,7 @@
 #include "sensor_hub.hpp"
 #include "data_pipeline.hpp"
 #include "network_manager.hpp"
+#include "config_manager.hpp"
 
 namespace {
 const char* TAG = "edgevault";
@@ -15,6 +16,14 @@ extern "C" void app_main(void)
 {
 
     ESP_LOGI(TAG, "EdgeVault v0.1.0");
+    
+    /* initialize the flash nvs partition */
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
     // create the system event group
     EventGroupHandle_t system_events_handle = xEventGroupCreate();

@@ -24,9 +24,9 @@ namespace storage {
             esp_err_t set_i32(const char* key, int32_t value);
 
             esp_err_t get_float(const char* key, float& out) const;
-            esp_Err_t set_float(const char* key, float value);
+            esp_err_t set_float(const char* key, float value);
 
-            esp_err_t get_str(const char* key, char* out, size_t max_len) const;
+            esp_err_t get_str(const char* key, char* out, size_t* max_len) const;
             esp_err_t set_str(const char* key, const char* value);
 
             esp_err_t commit();
