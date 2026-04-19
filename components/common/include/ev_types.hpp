@@ -53,7 +53,7 @@ inline constexpr SensorInfo ssr_id_to_str(SensorSource ssr_src) {
     switch(ssr_src) {
         case SensorSource::Adc:
         ssr_info.sensor = "ADC";
-        ssr_info.unit = "";
+        ssr_info.unit = "volts";
         break;
         
         case SensorSource::Bme280:
