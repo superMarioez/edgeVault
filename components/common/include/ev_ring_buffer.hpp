@@ -16,6 +16,9 @@ namespace ev {
 
             explicit RingBuffer(size_t capacity) : cap_(capacity) {
 
+                // assert on capacity 0
+                configASSERT(capacity > 0);
+
                 // allocate in PSRAM
                 buffer_ = static_cast<T*>(heap_caps_malloc(cap_ * sizeof(T), MALLOC_CAP_SPIRAM));
 
