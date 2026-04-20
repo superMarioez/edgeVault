@@ -3,10 +3,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "esp_heap_caps.h"
-#include "esp_log.h"
 #include <cstddef>
 #include <cstring>
-
 
 namespace ev {
 
@@ -15,25 +13,97 @@ namespace ev {
     class RingBuffer {
 
         public:
-        RingBuffer(size_t capacity);
-        ~RingBuffer();
 
-        RingBuffer(const RingBuffer&) = delete;
-        RingBuffer& operator=(const RingBuffer&) = delete;
-        RingBuffer(RingBuffer&& other) noexcept = delete;
-        RingBuffer& operator=(RingBuffer&& other) noexcept = delete;
+            explicit RingBuffer(size_t capacity) : cap_(capacity) {
 
-        void push(const T& item);
-        void peek_latest(T& out) const;
-        size_t read_last_n(T* out, size_t n) const;
-        size_t count() const;
+                // allocate in PSRAM
+                buffer_ = static_cast<T*>(heap_caps_malloc(cap_ * sizeof(T), MALLOC_CAP_SPIRAM));
+
+                // check for null (PSRAM full)
+                ESP_ERROR_CHECK((buffer_) ? ESP_OK : ESP_ERR_NO_MEM);
+
+                // create the mutex
+                mutex_ = xSemaphoreCreateMutex();
+                ESP_ERROR_CHECK(mutex_? ESP_OK : ESP_ERR_NO_MEM);
+
+                head_ = 0;
+                count_ = 0;
+            }
+
+            ~RingBuffer() {
+                if (mutex_ != nullptr) vSemaphoreDelete(mutex_);
+                if (buffer_ != nullptr) heap_caps_free(buffer_);
+            }
+
+            RingBuffer(const RingBuffer&) = delete;
+            RingBuffer& operator=(const RingBuffer&) = delete;
+            RingBuffer(RingBuffer&& other) noexcept = delete;
+            RingBuffer& operator=(RingBuffer&& other) noexcept = delete;
+
+            bool push(const T& item) {
+
+                bool ret = xSemaphoreTake(mutex_, pdMS_TO_TICKS(100));
+                if (!ret) return false;
+
+                buffer_[head_] = item;
+                head_ = (head_ + 1) % cap_;
+                count_ = (count_ + 1 >= cap_)? cap_ : count_ + 1 ;
+
+                if (!xSemaphoreGive(mutex_)) return false;
+                return true;
+            }
+
+            bool peek_latest(T& out) const {
+
+                bool ret = xSemaphoreTake(mutex_, pdMS_TO_TICKS(100));
+                if (!ret) return ret;
+
+                if (!count_) {
+                    xSemaphoreGive(mutex_);
+                    return false;
+                }
+                out = buffer_[(head_ - 1 + cap_) % cap_];
+
+                if (!xSemaphoreGive(mutex_)) return false;
+                return true;
+            }
+
+            size_t read_last_n(T* out, size_t n) const {
+
+                if (!xSemaphoreTake(mutex_, pdMS_TO_TICKS(100))) return 0;
+
+                size_t cnt = (n > count_)? count_ : n;
+                size_t start = (head_ - cnt + cap_) % cap_;
+
+                // wrap check
+                if (start + cnt > cap_) {
+                    // wraps
+                    memcpy(out, buffer_ + start, (cap_ - start) * sizeof(T));
+                    memcpy(out + cap_ - start, buffer_, (cnt - (cap_ - start)) * sizeof(T));
+                }
+                else {
+                    memcpy(out, buffer_ + start, cnt * sizeof(T));
+                }
+
+                if (!xSemaphoreGive(mutex_)) return 0;
+
+                return cnt;
+            }
+
+            size_t count() const {
+                if (!xSemaphoreTake(mutex_, pdMS_TO_TICKS(100))) return 0;
+                const size_t current_cnt = count_;
+                if (!xSemaphoreGive(mutex_)) return 0;
+                return current_cnt;
+            }
 
         private:
-        T* buffer_;
-        size_t cap_;
-        size_t head_;
-        size_t count_;
-        SemaphoreHandle_t mutex_;
+
+            T* buffer_;
+            size_t cap_;
+            size_t head_;
+            size_t count_;
+            mutable SemaphoreHandle_t mutex_;
     };
 
 
