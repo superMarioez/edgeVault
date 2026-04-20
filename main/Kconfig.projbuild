@@ -113,4 +113,6 @@ menu "EdgeVault Configuration"
             help
                 store a reading every X seconds
 
+    endmenu
+
 endmenu
