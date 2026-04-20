@@ -92,13 +92,6 @@ menu "EdgeVault Configuration"
 
     menu "PSRAM"
 
-        config EV_SENSOR_NUM
-            int "Number of Sensors"
-            default 5
-            range 1 10
-            help
-                Number of sensors integrated in the system
-
         config EV_DURATION_HOURS
             int "History Chart Duration"
             default 12
@@ -107,11 +100,11 @@ menu "EdgeVault Configuration"
                 how long to keep the last configured readings in the buffer
 
         config EV_HISTORY_INTERVAL_S
-            int "History Interval"
+            int "History Polling Interval"
             default 5
             range 1 60
             help
-                store a reading every X seconds
+                store a reading every X seconds, should be greater than sensor polling interval
 
     endmenu
 

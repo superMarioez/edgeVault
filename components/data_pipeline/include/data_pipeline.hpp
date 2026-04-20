@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ev_types.hpp"
-
+#include "ev_ring_buffer.hpp"
 
 namespace datapipeline {
 
