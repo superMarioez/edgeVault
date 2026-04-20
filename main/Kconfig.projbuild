@@ -82,13 +82,35 @@ menu "EdgeVault Configuration"
             
 
         config EV_BATTERY_DIVIDER_RATIO_X10
-            int "Adc voltage divider"
+            int "Adc Voltage Divider"
             default 10
             range 10 10
             help
                 ADC voltage divider value
 
-
     endmenu
+
+    menu "PSRAM"
+
+        config EV_SENSOR_NUM
+            int "Number of Sensors"
+            default 5
+            range 1 10
+            help
+                Number of sensors integrated in the system
+
+        config EV_DURATION_HOURS
+            int "History Chart Duration"
+            default 12
+            range 1 24
+            help
+                how long to keep the last configured readings in the buffer
+
+        config EV_HISTORY_INTERVAL_S
+            int "History Interval"
+            default 5
+            range 1 60
+            help
+                store a reading every X seconds
 
 endmenu
