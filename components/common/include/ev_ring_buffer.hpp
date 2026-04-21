@@ -5,12 +5,17 @@
 #include "esp_heap_caps.h"
 #include <cstddef>
 #include <cstring>
+#include <type_traits>
 
 namespace ev {
 
 
     template<typename T>
     class RingBuffer {
+
+        static_assert(
+            std::is_trivially_copyable<T>::value,
+            "FATAL ARCHITECTURE ERROR: RingBuffer only accepts trivially-copyable types");
 
         public:
 
