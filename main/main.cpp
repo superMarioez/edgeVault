@@ -64,8 +64,6 @@ extern "C" void app_main(void)
 
     /* SPI Bus Initialization */
 
-    sdlogger_params.spi_host_ = SPI2_HOST;
-
     spi_bus_config_t spi_cfg = {};
     spi_cfg.mosi_io_num = CONFIG_EV_SPI_MOSI_PIN;
     spi_cfg.miso_io_num = CONFIG_EV_SPI_MISO_PIN;
@@ -77,8 +75,7 @@ extern "C" void app_main(void)
 
     ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &spi_cfg, SPI_DMA_CH_AUTO));
 
-    
-    
+    sdlogger_params.spi_host_ = SPI2_HOST;
 
     /* spawn the system's tasks */
     configASSERT(xTaskCreatePinnedToCore(
