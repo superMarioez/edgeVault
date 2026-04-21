@@ -108,4 +108,37 @@ menu "EdgeVault Configuration"
 
     endmenu
 
+    menu "SPI"
+
+        config EV_SPI_MOSI_PIN
+            int "Master-Out Slave-In pin"
+            default 11
+            range 0 48
+            help
+                pin responsible for transmitting data to selected slave, default is 11 (native IO_MUX pin). Changing this will route via GPIO matrix and limit speed to 40MHz
+
+        config EV_SPI_MISO_PIN
+            int "Master-In Slave-Out"
+            default 13
+            range 0 48
+            help
+                pin responsible for receiving data on the bus master, default is 13 (native IO_MUX pin). Changing this will route via GPIO matrix and limit speed to 40MHz
+
+        config EV_SPI_SCLK_PIN
+            int "SPI Serial Clock Pin"
+            default 12
+            range 0 48
+            help
+                spi serial clock pin, default is 12 (native IO_MUX pin). Changing this will route via GPIO matrix and limit speed to 40MHz
+
+        config EV_SPI_MAX_TSFR_SIZE
+            int "SPI Maximum Transfer Size"
+            default  32768
+            range 512 65536
+            help
+                maximum bytes can be transferred on the spi bus
+
+    endmenu
+
+
 endmenu
