@@ -5,11 +5,14 @@
 #include "data_pipeline.hpp"
 #include "network_manager.hpp"
 #include "config_manager.hpp"
+#include "driver/spi_master.h"
+#include "sd_logger.hpp"
 
 namespace {
 const char* TAG = "edgevault";
 sensorhub::SensorHubContext sensor_hub_params = {};
 datapipeline::DataPipelineContext data_pipeline_params = {};
+sdlogger::SDLoggerContext sdlogger_params = {};
 }
 
 extern "C" void app_main(void)
@@ -29,7 +32,12 @@ extern "C" void app_main(void)
     EventGroupHandle_t system_events_handle = xEventGroupCreate();
     ESP_ERROR_CHECK(system_events_handle ? ESP_OK : ESP_ERR_NO_MEM);
 
-    // initializing the i2c master bus
+    // provide the system events handle tasks that consume it.
+    sensor_hub_params.system_events_h_ = system_events_handle;
+    data_pipeline_params.system_events_h_ = system_events_handle;
+    sdlogger_params.system_events_h_ = system_events_handle;
+
+    /* initializing the i2c master bus */
     i2c_master_bus_config_t i2c_bus_cfg = {};
     i2c_bus_cfg.i2c_port = I2C_NUM_0;
     i2c_bus_cfg.sda_io_num = static_cast<gpio_num_t>(CONFIG_EV_I2C_SDA_GPIO);
@@ -38,10 +46,6 @@ extern "C" void app_main(void)
     i2c_bus_cfg.flags.allow_pd = false;
     i2c_bus_cfg.glitch_ignore_cnt = 7;
     i2c_bus_cfg.clk_source = I2C_CLK_SRC_DEFAULT;
-
-    // provide the system events handle tasks that consume it.
-    sensor_hub_params.system_events_h_ = system_events_handle;
-    data_pipeline_params.system_events_h_ = system_events_handle;
 
     // create the i2c master bus
     i2c_master_bus_handle_t i2c_bus = {};
@@ -57,6 +61,24 @@ extern "C" void app_main(void)
     // provide the queue handle to it's producers/consumers
     sensor_hub_params.data_queue_h_ = sensor_q_h;
     data_pipeline_params.data_queue_h_ = sensor_q_h;
+
+    /* SPI Bus Initialization */
+
+    sdlogger_params.spi_host_ = SPI2_HOST;
+
+    spi_bus_config_t spi_cfg = {};
+    spi_cfg.mosi_io_num = CONFIG_EV_SPI_MOSI_PIN;
+    spi_cfg.miso_io_num = CONFIG_EV_SPI_MISO_PIN;
+    spi_cfg.sclk_io_num = CONFIG_EV_SPI_SCLK_PIN;
+    spi_cfg.max_transfer_sz = CONFIG_EV_SPI_MAX_TSFR_SIZE;
+    spi_cfg.quadwp_io_num = -1;
+    spi_cfg.quadhd_io_num = -1;
+    spi_cfg.isr_cpu_id = ESP_INTR_CPU_AFFINITY_1;
+
+    ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &spi_cfg, SPI_DMA_CH_AUTO));
+
+    
+    
 
     /* spawn the system's tasks */
     configASSERT(xTaskCreatePinnedToCore(
