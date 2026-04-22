@@ -16,7 +16,7 @@ namespace sdlogger {
     class SDLogger {
 
         public:
-            explicit SDLogger(spi_host_device_t spi_bus);
+            explicit SDLogger(spi_host_device_t spi_bus, const char* mount_path);
             ~SDLogger();
 
             SDLogger(const SDLogger&) = delete;
@@ -27,7 +27,6 @@ namespace sdlogger {
         private:
 
             char mnt_path_[16] = {}; // owns the VFS routing path
-            sdspi_dev_handle_t dev_h_ = {}; // owns the physical SPI device lock
             sdmmc_card_t* card_h_ = nullptr; // owns the SD card protocol state
     };
 

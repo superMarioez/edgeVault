@@ -5,13 +5,21 @@ namespace sdlogger {
 
     const char* TAG = "SDCard Logger";
 
-    SDLogger::SDLogger(spi_host_device_t spi_bus) {
+    SDLogger::SDLogger(spi_host_device_t spi_bus, const char* mount_path) {
 
+        // set the mount path
+        strncpy(mnt_path_, mount_path, sizeof(mnt_path_));
 
         // sdspi device configurations
-        sdspi_device_config_t dev_cfg = SDSPI_DEVICE_CONFIG_DEFAULT();
-
-        ESP_ERROR_CHECK(sdspi_host_init_device(&dev_cfg, &dev_h_));
+        sdspi_device_config_t dev_cfg = {
+            .host_id = spi_bus,
+            .gpio_cs = static_cast<gpio_num_t>(CONFIG_EV_SDSPI_CS),
+            .gpio_cd = SDSPI_SLOT_NO_CD,
+            .gpio_wp = SDSPI_SLOT_NO_WP,
+            .gpio_int = GPIO_NUM_NC,
+            .gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW,
+            .duty_cycle_pos = 0
+        };
 
         // internal hw controller (SPI) configurations
         sdmmc_host_t host_cfg_input = SDSPI_HOST_DEFAULT();
@@ -63,19 +71,12 @@ namespace sdlogger {
             if (ret != ESP_OK) ESP_LOGE(TAG, "Unmounting unsuccessful: %s", esp_err_to_name(ret));
             else card_h_ = nullptr;
         }
-
-        if (!dev_h_) {
-            esp_err_t ret = sdspi_host_remove_device(dev_h_);
-            if (ret != ESP_OK) ESP_LOGE(TAG, "sdspi device removal unsuccessful: %s", esp_err_to_name(ret));
-            else dev_h_ = {};
-        }
     }
 
-    SDLogger::SDLogger(SDLogger&& other) noexcept : dev_h_(other.dev_h_), card_h_(other.card_h_)
+    SDLogger::SDLogger(SDLogger&& other) noexcept : card_h_(other.card_h_)
     {
         strncpy(mnt_path_, other.mnt_path_, sizeof(mnt_path_));
 
-        other.dev_h_ = {};
         other.card_h_ = nullptr;
         other.mnt_path_[0] = '\0';
     }
@@ -85,13 +86,14 @@ namespace sdlogger {
         // check for self assignment
         if (this == &other) return *this;
 
-        if (!dev_h_) sdspi_host_remove_device(dev_h_);
         if (card_h_ != nullptr) esp_vfs_fat_sdcard_unmount(mnt_path_, card_h_);
         mnt_path_[0] = '\0';
 
-        dev_h_ = other.dev_h_;
         card_h_ = other.card_h_;
         strncpy(mnt_path_, other.mnt_path_, sizeof(mnt_path_));
+
+        other.card_h_ = nullptr;
+        other.mnt_path_[0] = '\0';
 
         return *this;
     }
