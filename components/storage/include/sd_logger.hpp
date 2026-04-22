@@ -22,13 +22,13 @@ namespace sdlogger {
             SDLogger(const SDLogger&) = delete;
             SDLogger& operator=(const SDLogger&) = delete;
             SDLogger(SDLogger&& other) noexcept;
-            SDLogger& operator=(SDLogger&& other) = delete;
+            SDLogger& operator=(SDLogger&& other);
 
         private:
 
-            char mnt_path_[16]; // owns the VFS routing path
-            sdmmc_card_t* card_h_; // owns the SD card protocol state
-            sdspi_dev_handle_t dev_h_; // owns the physical SPI device lock
+            char mnt_path_[16] = {}; // owns the VFS routing path
+            sdspi_dev_handle_t dev_h_ = {}; // owns the physical SPI device lock
+            sdmmc_card_t* card_h_ = nullptr; // owns the SD card protocol state
     };
 
 }
