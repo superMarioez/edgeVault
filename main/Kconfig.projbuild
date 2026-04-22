@@ -140,5 +140,17 @@ menu "EdgeVault Configuration"
 
     endmenu
 
+    menu "SDSPI"
+    
+        config EV_SDSPI_CS
+            int "SD Card CS pin"
+            default 10
+            range 0 48
+            help
+                sd card chip select pin
+    
+    endmenu
+
+
 
 endmenu
