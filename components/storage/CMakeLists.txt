@@ -1,5 +1,5 @@
 idf_component_register(
     SRC_DIRS "src"
     INCLUDE_DIRS "include"
-    REQUIRES nvs_flash "common" driver
+    REQUIRES nvs_flash "common" driver fatfs sdmmc
 )

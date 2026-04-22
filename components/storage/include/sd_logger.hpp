@@ -1,5 +1,7 @@
 #pragma once
 #include "driver/spi_master.h"
+#include "driver/sdspi_host.h"
+#include "esp_vfs_fat.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 
@@ -24,8 +26,9 @@ namespace sdlogger {
 
         private:
 
-            spi_device_handle_t dev_h_;
-
+            char mnt_path_[16]; // owns the VFS routing path
+            sdmmc_card_t* card_h_; // owns the SD card protocol state
+            sdspi_dev_handle_t dev_h_; // owns the physical SPI device lock
     };
 
 }
