@@ -7,12 +7,6 @@
 
 namespace sdlogger {
 
-    struct SDLoggerContext {
-        spi_host_device_t spi_host_;
-        EventGroupHandle_t system_events_h_;
-    };
-
-
     class SDLogger {
 
         public:

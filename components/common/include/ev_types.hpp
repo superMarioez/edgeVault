@@ -28,7 +28,8 @@ enum class SystemEvent : EventBits_t {
     MqttConnected = (1 << 1),
     NtpSynced = (1 << 2),
     SensorError = (1 << 3),
-    LowBattery = (1 << 4)
+    LowBattery = (1 << 4),
+    StorageError = (1 << 5)
 };
 
 struct SensorInfo {

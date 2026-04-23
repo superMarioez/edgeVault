@@ -12,7 +12,6 @@ namespace {
 const char* TAG = "edgevault";
 sensorhub::SensorHubContext sensor_hub_params = {};
 datapipeline::DataPipelineContext data_pipeline_params = {};
-sdlogger::SDLoggerContext sdlogger_params = {};
 }
 
 extern "C" void app_main(void)
@@ -35,7 +34,6 @@ extern "C" void app_main(void)
     // provide the system events handle tasks that consume it.
     sensor_hub_params.system_events_h_ = system_events_handle;
     data_pipeline_params.system_events_h_ = system_events_handle;
-    sdlogger_params.system_events_h_ = system_events_handle;
 
     /* initializing the i2c master bus */
     i2c_master_bus_config_t i2c_bus_cfg = {};
@@ -75,7 +73,7 @@ extern "C" void app_main(void)
 
     ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &spi_cfg, SPI_DMA_CH_AUTO));
 
-    sdlogger_params.spi_host_ = SPI2_HOST;
+    data_pipeline_params.spi_host_ = SPI2_HOST;
 
     /* spawn the system's tasks */
     configASSERT(xTaskCreatePinnedToCore(

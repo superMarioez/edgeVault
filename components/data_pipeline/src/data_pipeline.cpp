@@ -1,8 +1,10 @@
 #include "data_pipeline.hpp"
 #include "config_manager.hpp"
+#include "sd_logger.hpp"
 #include "inttypes.h"
 #include <cmath>
 #include <array>
+#include "stdio.h"
 
 namespace datapipeline {
 
@@ -35,6 +37,18 @@ namespace datapipeline {
                 ESP_LOGW(TAG, "Failed to retrieve calibration value from %s: %s",
                     ev::ssr_id_to_str(static_cast<ev::SensorSource>(i)).sensor,
                     esp_err_to_name(cfg_mgr_ret));
+            }
+        }
+
+        // create an sd logger
+        sdlogger::SDLogger logger(dp_ctx->spi_host_, "/sdcard");
+
+        // open a csv file
+        FILE* log_file = fopen("/sdcard/log.csv", "a+");
+
+        if (log_file != nullptr) {
+            if (!ftell(log_file)) {
+                fprintf(log_file, "timestamp_ms,sensor,value,quality,register_addr\n");
             }
         }
 
