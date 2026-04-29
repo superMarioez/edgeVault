@@ -174,10 +174,9 @@ namespace datapipeline {
                     if (log_file != nullptr) {
                         file_log_row(log_file, dp_ctx, ssr_buff);
                     }
-
-                        "%" PRId64 " %s | value = %0.2f %s | quality = %s ",
+                    ESP_LOGI(
                         TAG,
-                        "%" PRId64 " %s | value = %0.2f %s | quality= %s ",
+                        "%" PRId64 " %s | value = %0.2f %s | quality = %s ",
                         ssr_buff.timestamp_ms_,
                         ev::ssr_id_to_str(ssr_buff.sensor_).sensor,
                         ssr_buff.value_,
@@ -196,7 +195,5 @@ namespace datapipeline {
 
     vTaskDelete(nullptr);
 }
-
-
     
 }
