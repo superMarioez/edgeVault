@@ -41,10 +41,22 @@ namespace datapipeline {
                 ev::to_bits(ev::SystemEvent::StorageError)
             );
         }
+        else {
+            fret = fflush(file_h);
+            if (fret < 0) {
+                xEventGroupSetBits(
+                    dp_context->system_events_h_,
+                    ev::to_bits(ev::SystemEvent::StorageError)
+                );
+                ESP_LOGE(TAG, "row logging failed");
+            }
+        }
         
     }
 
     void data_pipeline_task(void *pvParameters) {
+
+        bool terminate = false;
 
         ESP_LOGI(TAG, "start");
 
@@ -75,7 +87,13 @@ namespace datapipeline {
 
         int fret = -1;
 
-        if (log_file == nullptr) ESP_LOGE(TAG, "couldn't open log file");
+        // handle fopen() failure
+        if (log_file == nullptr) {
+            xEventGroupSetBits(dp_ctx->system_events_h_, ev::to_bits(ev::SystemEvent::StorageError));
+            terminate = true;
+            ESP_LOGE(TAG, "couldn't open log file");
+        }
+
         else {
             // placing the csv header
             fret = fseek(log_file, 0, SEEK_END);
@@ -86,19 +104,23 @@ namespace datapipeline {
                 ESP_LOGI(TAG, "new CSV file created, printing header");
 
                 fret = fprintf(log_file, "timestamp_ms,sensor,value,unit,quality,register_addr\n");
-                if (fret < 0) ESP_LOGE(TAG, "file header cannot be printed");
-                
+                if (fret < 0) {
+                    xEventGroupSetBits(dp_ctx->system_events_h_, ev::to_bits(ev::SystemEvent::StorageError));
+                    ESP_LOGE(TAG, "file header cannot be printed");
+                }
                 else {
                     fret = fflush(log_file);
                     if (fret < 0) {
-                        ESP_LOGE(TAG, "header logging failed");
                         xEventGroupSetBits(dp_ctx->system_events_h_, ev::to_bits(ev::SystemEvent::StorageError));
+                        ESP_LOGE(TAG, "header logging failed");
                     }
                 }
             }
         }
 
         for (;;) {
+
+            if (terminate) break;
 
             BaseType_t ret = xQueueReceive(
                 dp_ctx->data_queue_h_,
@@ -164,8 +186,10 @@ namespace datapipeline {
             }
         }
 
+        if (log_file != nullptr) {
         fret = fclose(log_file);
         if (fret < 0) ESP_LOGE(TAG, "log file couldn't be closed");
+        }
     }
 
     vTaskDelete(nullptr);
