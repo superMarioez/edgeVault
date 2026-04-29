@@ -48,7 +48,7 @@ namespace datapipeline {
                     dp_context->system_events_h_,
                     ev::to_bits(ev::SystemEvent::StorageError)
                 );
-                ESP_LOGE(TAG, "row logging failed");
+                ESP_LOGE(TAG, "Failed to flush data row to file");
             }
         }
         
@@ -74,7 +74,9 @@ namespace datapipeline {
             }
         }
 
-    {
+        // Limit the SD logger lifetime to the logging section so it is cleaned up
+        // before the task exits.
+        {
 
         // create an sd logger
         sdlogger::SDLogger logger(dp_ctx->spi_host_, MOUNT_PATH);
@@ -173,7 +175,7 @@ namespace datapipeline {
                         file_log_row(log_file, dp_ctx, ssr_buff);
                     }
 
-                    ESP_LOGI(
+                        "%" PRId64 " %s | value = %0.2f %s | quality = %s ",
                         TAG,
                         "%" PRId64 " %s | value = %0.2f %s | quality= %s ",
                         ssr_buff.timestamp_ms_,
