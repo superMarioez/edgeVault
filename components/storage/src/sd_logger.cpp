@@ -3,7 +3,7 @@
 
 namespace sdlogger {
 
-    const char* TAG = "SDCard Logger";
+    static const char* TAG = "SDCard Logger";
 
     SDLogger::SDLogger(spi_host_device_t spi_bus, const char* mount_path) {
 

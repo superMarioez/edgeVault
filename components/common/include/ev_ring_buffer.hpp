@@ -57,7 +57,7 @@ namespace ev {
                 head_ = (head_ + 1) % cap_;
                 count_ = (count_ + 1 >= cap_)? cap_ : count_ + 1 ;
 
-                if (!xSemaphoreGive(mutex_)) return false;
+                static_cast<void>(xSemaphoreGive(mutex_));
                 return true;
             }
 
@@ -72,7 +72,7 @@ namespace ev {
                 }
                 out = buffer_[(head_ - 1 + cap_) % cap_];
 
-                if (!xSemaphoreGive(mutex_)) return false;
+                static_cast<void>(xSemaphoreGive(mutex_));
                 return true;
             }
 
@@ -93,7 +93,7 @@ namespace ev {
                     memcpy(out, buffer_ + start, cnt * sizeof(T));
                 }
 
-                if (!xSemaphoreGive(mutex_)) return 0;
+                static_cast<void>(xSemaphoreGive(mutex_));
 
                 return cnt;
             }
@@ -101,7 +101,7 @@ namespace ev {
             size_t count() const {
                 if (!xSemaphoreTake(mutex_, pdMS_TO_TICKS(100))) return 0;
                 const size_t current_cnt = count_;
-                if (!xSemaphoreGive(mutex_)) return 0;
+                static_cast<void>(xSemaphoreGive(mutex_));
                 return current_cnt;
             }
 

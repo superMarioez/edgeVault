@@ -1,10 +1,10 @@
 #include "data_pipeline.hpp"
 #include "config_manager.hpp"
 #include "sd_logger.hpp"
-#include "inttypes.h"
+#include <cinttypes>
 #include <cmath>
 #include <array>
-#include "stdio.h"
+#include <cstdio>
 
 namespace datapipeline {
 
@@ -23,7 +23,7 @@ namespace datapipeline {
     static_assert(nvs_keys.size() == static_cast<size_t>(ev::SensorSource::Count),
     "nvs_keys must match SensorSource count");
 
-    static void file_log_row(FILE* file_h, DataPipelineContext* dp_context, ev::SensorReading ssr_rdgs) {
+    static void file_log_row(FILE* file_h, EventGroupHandle_t sys_events, ev::SensorReading ssr_rdgs) {
         int fret = fprintf(
             file_h,
             "%" PRId64 ",%s,%0.2f,%s,%s,%d\n",
@@ -37,7 +37,7 @@ namespace datapipeline {
         if (fret < 0) {
             ESP_LOGE(TAG, "data row logging failed");
             xEventGroupSetBits(
-                dp_context->system_events_h_,
+                sys_events,
                 ev::to_bits(ev::SystemEvent::StorageError)
             );
         }
@@ -45,7 +45,7 @@ namespace datapipeline {
             fret = fflush(file_h);
             if (fret < 0) {
                 xEventGroupSetBits(
-                    dp_context->system_events_h_,
+                    sys_events,
                     ev::to_bits(ev::SystemEvent::StorageError)
                 );
                 ESP_LOGE(TAG, "Failed to flush data row to file");
@@ -122,6 +122,22 @@ namespace datapipeline {
 
         for (;;) {
 
+            
+            /* frame size check */
+            StackType_t free_bytes = uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
+            if (free_bytes < 256) {
+                ESP_LOGW(TAG, "stack high-water mark dangerously low!: %d", free_bytes);
+            }
+
+            /* storage error check */
+            EventBits_t events = xEventGroupGetBits(dp_ctx->system_events_h_);
+            if (events & ev::to_bits(ev::SystemEvent::StorageError)) {
+                terminate = true;
+                if (log_file != nullptr) fclose(log_file);
+                log_file = nullptr;
+                xEventGroupClearBits(dp_ctx->system_events_h_, ev::to_bits(ev::SystemEvent::StorageError));
+            }
+
             if (terminate) break;
 
             BaseType_t ret = xQueueReceive(
@@ -149,7 +165,7 @@ namespace datapipeline {
                 );
 
                 if (log_file != nullptr) {
-                    file_log_row(log_file, dp_ctx, ssr_buff);
+                    file_log_row(log_file, dp_ctx->system_events_h_, ssr_buff);
                 }
             }
 
@@ -164,7 +180,7 @@ namespace datapipeline {
                     );
 
                 if (log_file != nullptr) {
-                    file_log_row(log_file, dp_ctx, ssr_buff);
+                    file_log_row(log_file, dp_ctx->system_events_h_, ssr_buff);
                     }
                 }
             
@@ -172,7 +188,7 @@ namespace datapipeline {
                     ssr_buff.value_ += offsets[static_cast<uint8_t>(ssr_buff.sensor_)];
                     
                     if (log_file != nullptr) {
-                        file_log_row(log_file, dp_ctx, ssr_buff);
+                        file_log_row(log_file, dp_ctx->system_events_h_, ssr_buff);
                     }
                     ESP_LOGI(
                         TAG,

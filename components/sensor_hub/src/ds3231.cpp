@@ -3,6 +3,7 @@
 
 namespace sensorhub {
 
+    static constexpr uint32_t I2C_XFER_TIMEOUT_MS = 100;
     
     Ds3231::Ds3231(i2c_master_bus_handle_t bus) {
 
@@ -38,7 +39,7 @@ namespace sensorhub {
         return *this;
     }
 
-    esp_err_t Ds3231::read_time_date(struct tm& out_time) {
+    esp_err_t Ds3231::read_time_date(struct tm& out_time) const {
         
         uint8_t buff[7] = {};
 
@@ -48,7 +49,7 @@ namespace sensorhub {
             1,
             buff,
             NUM_TIME_REGS,
-            100
+            I2C_XFER_TIMEOUT_MS
         );
 
         if (ret != ESP_OK) return ret;

@@ -96,6 +96,9 @@ inline constexpr const char* quality_to_str(Quality quality) {
 
         case Quality::Error:
         return "ERROR";
+
+        default:
+        return "UNKNOWN";
     }
 
     return "UNKNOWN";

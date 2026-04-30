@@ -21,11 +21,11 @@ namespace sensorhub {
             Ds3231(Ds3231&& other) noexcept;
             Ds3231& operator=(Ds3231&& other) noexcept;
 
-            esp_err_t read_time_date(struct tm& out_time);
+            esp_err_t read_time_date(struct tm& out_time) const;
 
         private:
 
-            i2c_master_dev_handle_t dev_handle_;
+            i2c_master_dev_handle_t dev_handle_ = nullptr;
 
             static constexpr uint8_t TIME_REG = 0x00;
             static constexpr uint8_t NUM_TIME_REGS = 7;

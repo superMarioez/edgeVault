@@ -22,7 +22,7 @@ namespace sensorhub {
 
         private:
 
-            i2c_master_dev_handle_t dev_handle_;
+            i2c_master_dev_handle_t dev_handle_ = nullptr;
             static constexpr uint8_t TEMP_REG = 0x00;
 
     };

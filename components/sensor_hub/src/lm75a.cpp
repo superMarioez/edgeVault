@@ -4,6 +4,7 @@
 
 namespace sensorhub {
 
+    static constexpr uint32_t I2C_XFER_TIMEOUT_MS = 100;
 
     Lm75a::Lm75a(i2c_master_bus_handle_t bus) {
         
@@ -51,7 +52,7 @@ namespace sensorhub {
             1,
             buff,
             2,
-            100
+            I2C_XFER_TIMEOUT_MS
         );
 
         if (ret != ESP_OK) return ret;
