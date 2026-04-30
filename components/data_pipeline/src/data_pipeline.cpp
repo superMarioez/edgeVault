@@ -124,9 +124,10 @@ namespace datapipeline {
 
             
             /* frame size check */
-            StackType_t free_bytes = uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
-            if (free_bytes < 256) {
-                ESP_LOGW(TAG, "stack high-water mark dangerously low!: %d", free_bytes);
+            const UBaseType_t min_ever_stack_size = uxTaskGetStackHighWaterMark(nullptr);
+            const size_t min_free_bytes = static_cast<size_t>(min_ever_stack_size) * sizeof(StackType_t);
+            if (min_free_bytes < 256u) {
+                ESP_LOGW(TAG, "stack high-water mark dangerously low!: %zu", min_free_bytes);
             }
 
             /* storage error check */
