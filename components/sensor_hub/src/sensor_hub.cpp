@@ -4,20 +4,11 @@
 #include "adc_battery.hpp"
 #include <cmath>
 #include "driver/gpio.h"
+#include "ev_queue.hpp"
 
 namespace sensorhub {
 
     static const char *TAG = "local sensor task";
-
-    static void send_or_discard_oldest(QueueHandle_t q_h, const ev::SensorReading& ssr_reading) {
-        BaseType_t q_ret = xQueueSend(q_h, &ssr_reading, 0);
-        if (q_ret == errQUEUE_FULL) {
-            ev::SensorReading throwaway_sns_rdg = {};
-            xQueueReceive(q_h, &throwaway_sns_rdg, 0);
-            q_ret = xQueueSend(q_h, &ssr_reading, 0);
-            ESP_LOGW(TAG, "Queue was full, discarded oldest value");
-        }
-    }
 
     void local_sensor_task(void *pvParameters) {
 
@@ -89,7 +80,7 @@ namespace sensorhub {
                 sensor_readings.value_ = static_cast<float>(voltage);
             }
 
-            send_or_discard_oldest(sensorHub_ctx->data_queue_h_, sensor_readings);
+            ev::queue_send_drop_oldest(TAG, sensorHub_ctx->data_queue_h_, sensor_readings);
 
             /* temperature read */
             sensor_readings.sensor_ = ev::SensorSource::Lm75a;
@@ -110,7 +101,7 @@ namespace sensorhub {
                 sensor_readings.value_ = temperature;
             }
             
-            send_or_discard_oldest(sensorHub_ctx->data_queue_h_, sensor_readings);
+            ev::queue_send_drop_oldest(TAG, sensorHub_ctx->data_queue_h_, sensor_readings);
 
             gpio_set_level(
                 static_cast<gpio_num_t>(CONFIG_EV_STATUS_LED_GPIO),

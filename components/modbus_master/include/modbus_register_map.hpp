@@ -1,0 +1,1 @@
+/* RegisterEntry struct + getters */
