@@ -29,7 +29,7 @@ TEST_CASE("CRC16 Modbus Mathematical Verfication") {
     }
 }
 
-TEST_CASE("encode read holding register") {
+TEST_CASE("Frame encoder") {
 
     SUBCASE("Correct frame") {
         uint8_t slave_id = 1;
@@ -95,7 +95,7 @@ TEST_CASE("encode read holding register") {
     }
 }
 
-    TEST_CASE("Decode read holding register") {
+    TEST_CASE("Frame decoder") {
 
         SUBCASE("Short frame") {
 
@@ -227,6 +227,77 @@ TEST_CASE("encode read holding register") {
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::BufferTooSmall);
+
+        }
+
+    }
+
+    TEST_CASE("Exception response decoder") {
+
+        SUBCASE("Valid exception response") {
+
+            const uint8_t frame[5] = {0x01, 0x83, 0x02, 0xc0, 0xf1};
+            size_t len = 5;
+            uint8_t exception_code = 0;
+
+            CHECK(
+                modbus_frame::ModbusFrameError::Ok ==
+                modbus_frame::decode_exception_response(frame, len, exception_code)
+            );
+
+            CHECK( 0x02 == exception_code );
+
+        }
+
+        SUBCASE("Wrong length ( < 5)") {
+
+            const uint8_t frame[5] = {0x01, 0x83, 0x02, 0xc0, 0xf1};
+            size_t len = 4;
+            uint8_t exception_code = 0;
+
+            CHECK(
+                modbus_frame::ModbusFrameError::ShortFrame ==
+                modbus_frame::decode_exception_response(frame, len, exception_code)
+            );
+
+        }
+
+        SUBCASE("Wrong length ( > 5)") {
+
+            const uint8_t frame[5] = {0x01, 0x83, 0x02, 0xc0, 0xf1};
+            size_t len = 6;
+            uint8_t exception_code = 0;
+
+            CHECK(
+                modbus_frame::ModbusFrameError::InvalidArgument ==
+                modbus_frame::decode_exception_response(frame, len, exception_code)
+            );
+
+        }
+
+        SUBCASE("") {
+
+            const uint8_t frame[5] = {0x01, 0x83, 0x02, 0xc0, 0xf2};
+            size_t len = 5;
+            uint8_t exception_code = 0;
+
+            CHECK(
+                modbus_frame::ModbusFrameError::BadCrc ==
+                modbus_frame::decode_exception_response(frame, len, exception_code)
+            );
+
+        }
+
+        SUBCASE("Function code high bit not set") {
+
+            const uint8_t frame[5] = {0x01, 0x03, 0x02, 0xa1, 0x31};
+            size_t len = 5;
+            uint8_t exception_code = 0;
+
+            CHECK(
+                modbus_frame::ModbusFrameError::BadFunctionCode ==
+                modbus_frame::decode_exception_response(frame, len, exception_code)
+            );
 
         }
 

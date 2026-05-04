@@ -47,12 +47,12 @@ namespace modbus_frame {
      * @return ModbusFrameError::Ok on success, or a specific error code on validation failure.
      */
     ModbusFrameError encode_read_holding_register(
-        const uint8_t,
-        const uint16_t,
-        const uint16_t,
-        uint8_t*,
-        const size_t,
-        size_t*
+        const uint8_t slave_id,
+        const uint16_t addr,
+        const uint16_t qty,
+        uint8_t* out_buffer,
+        const size_t out_capacity,
+        size_t* out_len
     );
 
     /**
@@ -70,11 +70,29 @@ namespace modbus_frame {
      * @return ModbusFrameError::Ok on success, or a specific error code on validation failure.
      */
     ModbusFrameError decode_read_holding_register(
-        const uint8_t*,
-        size_t,
-        uint16_t,
-        uint16_t*,
-        size_t
+        const uint8_t* frame,
+        size_t frame_len,
+        uint16_t expected_quantity,
+        uint16_t* out_registers,
+        size_t out_capacity
+    );
+
+    /**
+     * @brief translates an exception response frame for the task layer to interpret it
+     * 
+     * Runs a strict validation guantlet on the exception response
+     * 
+     * @param frame                 Exception response frame
+     * @param len                   Exception response length ( MUST be 5 bytes! )
+     * @param out_exc_code          The transmitted error code (01 - 0B)
+     * 
+     * 
+     * @return ModbusFrameError::Ok on success, or a specific error code on validation failure.
+     */
+    ModbusFrameError decode_exception_response(
+        const uint8_t* frame,
+        size_t len,
+        uint8_t& out_exc_code
     );
 
 }

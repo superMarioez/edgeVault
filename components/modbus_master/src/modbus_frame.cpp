@@ -81,7 +81,8 @@ namespace modbus_frame {
         
         /* CRC Validation */
         uint16_t calc_crc = crc16_modbus(frame, frame_len - 2);
-        uint16_t crc = static_cast<uint16_t>((frame[frame_len - 1] << 8) & 0xFF00) | static_cast<uint16_t>(frame[frame_len - 2] & 0x00FF);
+        uint16_t crc = static_cast<uint16_t>((frame[frame_len - 1] << 8) & 0xFF00) |
+                       static_cast<uint16_t>(frame[frame_len - 2] & 0x00FF);
         if (calc_crc != crc) return ModbusFrameError::BadCrc;
 
         /* Function code validation */
@@ -110,6 +111,31 @@ namespace modbus_frame {
         }
 
         return ModbusFrameError::Ok;
+    }
+
+    ModbusFrameError decode_exception_response(
+        const uint8_t* frame,
+        size_t len,
+        uint8_t& out_exc_code
+    )
+    
+    {
+
+        if (len < 5) return ModbusFrameError::ShortFrame;
+        if (len > 5) return ModbusFrameError::InvalidArgument;
+
+        uint16_t calc_crc = crc16_modbus(frame, len - 2);
+        uint16_t crc = (static_cast<uint16_t>(frame[len - 1]) << 8) & 0xFF00 |
+                        static_cast<uint16_t>(frame[len - 2]) & 0x00FF;
+
+        if (crc != calc_crc) return ModbusFrameError::BadCrc;
+        
+        if ( (frame[1] & 0x80) == 0 ) return ModbusFrameError::BadFunctionCode;
+
+        out_exc_code = frame[2];
+
+        return ModbusFrameError::Ok;
+
     }
 
 
