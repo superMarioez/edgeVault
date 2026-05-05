@@ -1,6 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "modbus_frame.hpp"
+#include <cstdint>
 
 TEST_CASE("CRC16 Modbus Mathematical Verfication") {
 
@@ -50,6 +51,10 @@ TEST_CASE("Frame encoder") {
         CHECK(ret == modbus_frame::ModbusFrameError::Ok);
         CHECK(ret_len == 8);
 
+        uint8_t expected_frame[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x0a, 0xc5, 0xcd};
+
+        CHECK( std::memcmp(out_buff, expected_frame, ret_len) == 0 );
+        
     }
 
     SUBCASE("Insuffiecient capacity") {
@@ -73,7 +78,7 @@ TEST_CASE("Frame encoder") {
 
     }
 
-    SUBCASE("Correct frame") {
+    SUBCASE("Zero registers required") {
         uint8_t slave_id = 1;
         uint16_t addr = 0x0000;
         uint16_t qty = 0;
@@ -91,6 +96,27 @@ TEST_CASE("Frame encoder") {
 
         CHECK(ret == modbus_frame::ModbusFrameError::InvalidArgument);
         CHECK(ret_len == 0);
+
+    }
+
+    SUBCASE("Application layer sends a nulled buffer for output") {
+
+        uint8_t slave_id = 1;
+        uint16_t addr = 0x0000;
+        uint16_t qty = 10;
+        size_t cap = 8;
+        size_t ret_len = 0;
+        uint8_t* out_buff = nullptr;
+        modbus_frame::ModbusFrameError ret = modbus_frame::encode_read_holding_register(
+            slave_id,
+            addr,
+            qty,
+            out_buff,
+            cap,
+            &ret_len
+        );
+
+        CHECK(ret == modbus_frame::ModbusFrameError::InvalidArgument);
 
     }
 }
@@ -227,9 +253,49 @@ TEST_CASE("Frame encoder") {
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::BufferTooSmall);
-
         }
 
+            SUBCASE("Trailing garbage") {
+
+            size_t frame_len = 8;
+            uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x80, 0xf0, 0xff, 0x00, 0x00};
+            uint16_t expec_qty = 1;
+            size_t out_cap = 11;
+            uint16_t out_regs[expec_qty];
+
+            // Dynamically calculate the perfect CRC for the mutated 6-byte payload
+            // so it successfully sneaks past the CRC check in the validation guantlet.
+            uint16_t dynamic_crc = modbus_frame::crc16_modbus(frame, frame_len - 2);
+            frame[6] = dynamic_crc & 0xFF;
+            frame[7] = (dynamic_crc >> 8) & 0xFF;
+
+            CHECK( modbus_frame::ModbusFrameError::ByteCountMismatch == 
+            modbus_frame::decode_read_holding_register(
+                frame,
+                frame_len,
+                expec_qty,
+                out_regs,
+                out_cap
+            ));
+        }
+
+        SUBCASE("Sensor replies with more data than the expected (Expected quantity vs. Byte count)") {
+
+            size_t frame_len = 7;
+            const uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x80, 0xf0, 0xd9, 0xc0};
+            uint16_t expec_qty = 50;
+            size_t out_cap = 11;
+            uint16_t out_regs[expec_qty];
+
+            CHECK(modbus_frame::decode_read_holding_register(
+                frame,
+                frame_len,
+                expec_qty,
+                out_regs,
+                out_cap
+            )
+                == modbus_frame::ModbusFrameError::ByteCountMismatch);
+        }
     }
 
     TEST_CASE("Exception response decoder") {
