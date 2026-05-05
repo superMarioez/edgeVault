@@ -5,11 +5,11 @@
 
 namespace modbus_frame {
 
-    static constexpr void reorder_bytes(const ByteOrder& order, const uint16_t* words, uint32_t& reordered_bytes) {
+    static void reorder_bytes(const ByteOrder& order, const uint16_t* words, uint32_t& reordered_bytes) {
         
-        uint32_t a = static_cast<uint32_t>(words[0] >> 8 & 0x000000FF);
+        uint32_t a = static_cast<uint32_t>((words[0] >> 8) & 0x000000FF);
         uint32_t b = static_cast<uint32_t>(words[0] & 0x000000FF);
-        uint32_t c = static_cast<uint32_t>(words[1] >> 8 & 0x000000FF);
+        uint32_t c = static_cast<uint32_t>((words[1] >> 8) & 0x000000FF);
         uint32_t d = static_cast<uint32_t>(words[1] & 0x000000FF);
 
         switch(order) {
@@ -86,18 +86,18 @@ namespace modbus_frame {
 
     {
 
+        // validate the output buffer
+        if (out_buffer == nullptr) return ModbusFrameError::InvalidArgument;
+
         // validate the output length is not nullptr
         if (out_len != nullptr) *out_len = 0;
         else return ModbusFrameError::InvalidArgument;
 
         // validate the number of registers to be read
-        if (qty <= 0 || qty > 125) return ModbusFrameError::InvalidArgument;
+        if (qty == 0 || qty > 125) return ModbusFrameError::InvalidArgument;
         
         // validate the buffer capacity >= 8
         if (out_capacity < 8) return ModbusFrameError::BufferTooSmall;
-
-        // validate the output buffer
-        if (out_buffer == nullptr) return ModbusFrameError::InvalidArgument;
 
         out_buffer[MODBUS_SLAVE_ID_BYTE_INDEX] = slave_id;
         out_buffer[MODBUS_FUNCTION_CODE_BYTE_INDEX] = FC_03;
@@ -128,13 +128,17 @@ namespace modbus_frame {
     {
         /* slave id validation is for the application level caller to verify */
 
+        /* Guarding against nullptrs */
+        if (frame == nullptr) return ModbusFrameError::InvalidArgument;
+        if (out_registers == nullptr) return ModbusFrameError::InvalidArgument;
+
         /* Frame length validation (a frame physically cannot exist if it's less than 5 bytes)*/
         if (frame_len < 5) return ModbusFrameError::ShortFrame;
         
         /* CRC Validation */
         uint16_t calc_crc = crc16_modbus(frame, frame_len - 2);
-        uint16_t crc = static_cast<uint16_t>((frame[frame_len - 1] << 8) & 0xFF00) |
-                       static_cast<uint16_t>(frame[frame_len - 2] & 0x00FF);
+        uint16_t crc = ((static_cast<uint16_t>(frame[frame_len - 1]) << 8) & 0xFF00) |
+                       (static_cast<uint16_t>(frame[frame_len - 2]) & 0x00FF);
         if (calc_crc != crc) return ModbusFrameError::BadCrc;
 
         /* Function code validation */
@@ -142,14 +146,14 @@ namespace modbus_frame {
         if (frame[MODBUS_FUNCTION_CODE_BYTE_INDEX] != FC_03) return ModbusFrameError::BadFunctionCode;
         
 
-        /* If it's not an exception response, then it's a normal FD03 read */
+        /* If it's not an exception response, then it's a normal FC03 read */
         if (frame_len < 7) return ModbusFrameError::ShortFrame;
 
         /* Byte count validation */
         if (frame[2] != expected_quantity * 2)
             return ModbusFrameError::ByteCountMismatch;
         
-        if (frame[2] != frame_len - MODBUS_RESPONSE_FRAME_OVERHEAD) return ModbusFrameError::ByteCountMismatch;
+        if (frame[2] != frame_len - MODBUS_RESPONSE_FRAME_OVERHEAD) return ModbusFrameError::MalformedFrame;
 
         // Safety check for not overwriting adjacent RAM addresses
         if (expected_quantity > out_capacity) return ModbusFrameError::BufferTooSmall;
@@ -174,7 +178,7 @@ namespace modbus_frame {
     {
 
         if (len < 5) return ModbusFrameError::ShortFrame;
-        if (len > 5) return ModbusFrameError::InvalidArgument;
+        if (len > 5) return ModbusFrameError::MalformedFrame;
 
         uint16_t calc_crc = crc16_modbus(frame, len - 2);
         uint16_t crc = (static_cast<uint16_t>(frame[len - 1]) << 8) & 0xFF00 |

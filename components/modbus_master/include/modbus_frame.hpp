@@ -5,13 +5,13 @@
 
 namespace modbus_frame {
 
-    inline constexpr const uint16_t REFLECTED_POLYNOMIAL = 0xA001;
-    inline constexpr const uint8_t BIT_LENGTH = 8;
-    inline constexpr const uint8_t FC_03 = 0x03;
-    inline constexpr const uint8_t FC_EXCEPTION_83 = 0x83;
-    inline constexpr const uint8_t MODBUS_RESPONSE_FRAME_OVERHEAD = 5;
-    inline constexpr const uint8_t MODBUS_SLAVE_ID_BYTE_INDEX = 0;
-    inline constexpr const uint8_t MODBUS_FUNCTION_CODE_BYTE_INDEX = 1;
+    inline constexpr uint16_t REFLECTED_POLYNOMIAL = 0xA001;
+    inline constexpr uint8_t BIT_LENGTH = 8;
+    inline constexpr uint8_t FC_03 = 0x03;
+    inline constexpr uint8_t FC_EXCEPTION_83 = 0x83;
+    inline constexpr uint8_t MODBUS_RESPONSE_FRAME_OVERHEAD = 5;
+    inline constexpr uint8_t MODBUS_SLAVE_ID_BYTE_INDEX = 0;
+    inline constexpr uint8_t MODBUS_FUNCTION_CODE_BYTE_INDEX = 1;
 
 
     /**
@@ -24,6 +24,7 @@ namespace modbus_frame {
         BadFunctionCode,            ///< Function code does not match expected or known values.
         ByteCountMismatch,          ///< Payload length contradicts the declared byte count.
         ExceptionResponse,          ///< Sensor rejected the request (high bit set on FC).
+        MalformedFrame,             ///< Wire data is wrong
         BufferTooSmall,             ///< Caller-provided capacity is insufficient for the payload.
         InvalidArgument             ///< Caller-provided mathematically illegal input parameters.
     };

@@ -2,6 +2,7 @@
 #include "doctest.h"
 #include "modbus_frame.hpp"
 #include <cstdint>
+#include <array>
 
 TEST_CASE("CRC16 Modbus Mathematical Verfication") {
 
@@ -38,12 +39,12 @@ TEST_CASE("Frame encoder") {
         uint16_t qty = 10;
         size_t cap = 8;
         size_t ret_len;
-        uint8_t out_buff[cap];
+        std::array<uint8_t, 8> out_buff {};
         modbus_frame::ModbusFrameError ret = modbus_frame::encode_read_holding_register(
             slave_id,
             addr,
             qty,
-            out_buff,
+            out_buff.data(),
             cap,
             &ret_len
         );
@@ -53,7 +54,7 @@ TEST_CASE("Frame encoder") {
 
         uint8_t expected_frame[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x0a, 0xc5, 0xcd};
 
-        CHECK( std::memcmp(out_buff, expected_frame, ret_len) == 0 );
+        CHECK( std::memcmp(out_buff.data(), expected_frame, ret_len) == 0 );
         
     }
 
@@ -63,12 +64,12 @@ TEST_CASE("Frame encoder") {
     uint16_t qty = 10;
     size_t cap = 7;
     size_t ret_len = 0;
-    uint8_t out_buff[cap];
+    std::array<uint8_t, 7> out_buff {};
     modbus_frame::ModbusFrameError ret = modbus_frame::encode_read_holding_register(
         slave_id,
         addr,
         qty,
-        out_buff,
+        out_buff.data(),
         cap,
         &ret_len
     );
@@ -84,12 +85,12 @@ TEST_CASE("Frame encoder") {
         uint16_t qty = 0;
         size_t cap = 8;
         size_t ret_len = 0;
-        uint8_t out_buff[cap];
+        std::array<uint8_t, 8> out_buff {};
         modbus_frame::ModbusFrameError ret = modbus_frame::encode_read_holding_register(
             slave_id,
             addr,
             qty,
-            out_buff,
+            out_buff.data(),
             cap,
             &ret_len
         );
@@ -129,14 +130,14 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x01, 0x04, 0xf1, 0x8b};
             uint16_t expec_qty = 10;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 10> out_regs {};
 
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::ShortFrame);
@@ -148,13 +149,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x12, 0x34, 0xb4, 0x33};
             uint16_t expec_qty = 10;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 10> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::BadCrc);
@@ -167,13 +168,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x83, 0x01, 0x80, 0xf0};
             uint16_t expec_qty = 1;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 1> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::ExceptionResponse);
@@ -186,13 +187,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x02, 0x02, 0x80, 0xf0, 0xd8, 0x3c};
             uint16_t expec_qty = 1;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 1> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::BadFunctionCode);
@@ -205,13 +206,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x04, 0x80, 0xf0, 0x39, 0xc1};
             uint16_t expec_qty = 1;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 1> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::ByteCountMismatch);
@@ -224,13 +225,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x80, 0xf0, 0xd9, 0xc0};
             uint16_t expec_qty = 1;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 1> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::Ok);
@@ -243,13 +244,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x04, 0x80, 0xf0, 0x12, 0x34, 0xde, 0xb7};
             uint16_t expec_qty = 2;
             size_t out_cap = 1;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 2> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::BufferTooSmall);
@@ -261,7 +262,7 @@ TEST_CASE("Frame encoder") {
             uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x80, 0xf0, 0xff, 0x00, 0x00};
             uint16_t expec_qty = 1;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 1> out_regs {};
 
             // Dynamically calculate the perfect CRC for the mutated 6-byte payload
             // so it successfully sneaks past the CRC check in the validation guantlet.
@@ -269,12 +270,12 @@ TEST_CASE("Frame encoder") {
             frame[6] = dynamic_crc & 0xFF;
             frame[7] = (dynamic_crc >> 8) & 0xFF;
 
-            CHECK( modbus_frame::ModbusFrameError::ByteCountMismatch == 
+            CHECK( modbus_frame::ModbusFrameError::MalformedFrame == 
             modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             ));
         }
@@ -285,13 +286,13 @@ TEST_CASE("Frame encoder") {
             const uint8_t frame[frame_len] = {0x01, 0x03, 0x02, 0x80, 0xf0, 0xd9, 0xc0};
             uint16_t expec_qty = 50;
             size_t out_cap = 11;
-            uint16_t out_regs[expec_qty];
+            std::array<uint16_t, 50> out_regs {};
 
             CHECK(modbus_frame::decode_read_holding_register(
                 frame,
                 frame_len,
                 expec_qty,
-                out_regs,
+                out_regs.data(),
                 out_cap
             )
                 == modbus_frame::ModbusFrameError::ByteCountMismatch);
@@ -335,7 +336,7 @@ TEST_CASE("Frame encoder") {
             uint8_t exception_code = 0;
 
             CHECK(
-                modbus_frame::ModbusFrameError::InvalidArgument ==
+                modbus_frame::ModbusFrameError::MalformedFrame ==
                 modbus_frame::decode_exception_response(frame, len, exception_code)
             );
 
@@ -379,9 +380,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -393,9 +395,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -408,9 +411,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( -1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -423,9 +427,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -438,9 +443,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -453,9 +459,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -468,9 +475,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -484,9 +492,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -499,9 +508,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -514,9 +524,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -529,9 +540,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -544,9 +556,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -559,9 +572,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -574,9 +588,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
@@ -589,9 +604,10 @@ TEST_CASE("Frame encoder") {
         modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
         float out = 0.0f;
 
-        modbus_frame::decode_value(words, word_count, type, order, out);
+        modbus_frame::ModbusFrameError ret = modbus_frame::decode_value(words, word_count, type, order, out);
 
         CHECK( 1.0f == out );
+        CHECK(modbus_frame::ModbusFrameError::Ok == ret);
 
         }
 
