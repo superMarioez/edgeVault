@@ -275,7 +275,7 @@ TEST_CASE("Frame encoder") {
 
         }
 
-        SUBCASE("") {
+        SUBCASE("Bad crc") {
 
             const uint8_t frame[5] = {0x01, 0x83, 0x02, 0xc0, 0xf2};
             size_t len = 5;
@@ -300,5 +300,234 @@ TEST_CASE("Frame encoder") {
             );
 
         }
+
+    }
+
+    TEST_CASE("Value decoder") {
+
+        SUBCASE("Uint16") {
+
+        uint16_t words[] = {0x0001};
+        size_t word_count = 1;
+        modbus_frame::DataType type = modbus_frame::DataType::Uint16;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+        SUBCASE("Int16, +ve target value") {
+
+        uint16_t words[] = {0x0001};
+        size_t word_count = 1;
+        modbus_frame::DataType type = modbus_frame::DataType::Int16;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+        
+        SUBCASE("Int16, -ve target value") {
+
+        uint16_t words[] = {0xffff};
+        size_t word_count = 1;
+        modbus_frame::DataType type = modbus_frame::DataType::Int16;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD; // Irrelevant
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( -1.0f == out );
+
+        }
+
+
+        SUBCASE("Uint32, Big endian (ABCD)") {
+
+        uint16_t words[] = {0x0000, 0x0001};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Uint32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Uint32, Word-swapped big endian (CDAB)") {
+
+        uint16_t words[] = {0x0001, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Uint32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Uint32, Bytes swapped within the word (BADC)") {
+
+        uint16_t words[] = {0x0000, 0x0100};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Uint32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Uint32, Full reverse little endian (DCBA)") {
+
+        uint16_t words[] = {0x0100, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Uint32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+
+        SUBCASE("Int32, Big endian (ABCD)") {
+
+        uint16_t words[] = {0x0000, 0x0001};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Int32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Int32, Word-swapped big endian (CDAB)") {
+
+        uint16_t words[] = {0x0001, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Int32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Int32, Bytes swapped within the word (BADC)") {
+
+        uint16_t words[] = {0x0000, 0x0100};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Int32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Int32, Full reverse little endian (DCBA)") {
+
+        uint16_t words[] = {0x0100, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Int32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Float32, Big endian (ABCD)") {
+
+        uint16_t words[] = {0x3f80, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Float32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::ABCD;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Float32, Word-swapped big endian (CDAB)") {
+
+        uint16_t words[] = {0x0000, 0x3f80};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Float32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::CDAB;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Float32, Bytes swapped within the word (BADC)") {
+
+        uint16_t words[] = {0x803f, 0x0000};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Float32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::BADC;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
+
+        SUBCASE("Float32, Full reverse little endian (DCBA)") {
+
+        uint16_t words[] = {0x0000, 0x803f};
+        size_t word_count = 2;
+        modbus_frame::DataType type = modbus_frame::DataType::Float32;
+        modbus_frame::ByteOrder order = modbus_frame::ByteOrder::DCBA;
+        float out = 0.0f;
+
+        modbus_frame::decode_value(words, word_count, type, order, out);
+
+        CHECK( 1.0f == out );
+
+        }
+
 
     }

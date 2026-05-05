@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <cstddef>
 
-
-
-
 namespace modbus_frame {
 
     inline constexpr const uint16_t REFLECTED_POLYNOMIAL = 0xA001;
@@ -16,15 +13,38 @@ namespace modbus_frame {
     inline constexpr const uint8_t MODBUS_SLAVE_ID_BYTE_INDEX = 0;
     inline constexpr const uint8_t MODBUS_FUNCTION_CODE_BYTE_INDEX = 1;
 
+
+    /**
+     * @brief Status codes returned by Modbus codec functions.
+    */
     enum class ModbusFrameError : int32_t {
-        Ok,
-        BadCrc,
-        ShortFrame,
-        BadFunctionCode,
-        ByteCountMismatch,
-        ExceptionResponse,
-        BufferTooSmall,
-        InvalidArgument
+        Ok,                         ///< Operation completed successfully
+        BadCrc,                     ///< Frame is corrupted; failed the cyclic redundancy check.
+        ShortFrame,                 ///< Frame length is small to be mathematically valid.
+        BadFunctionCode,            ///< Function code does not match expected or known values.
+        ByteCountMismatch,          ///< Payload length contradicts the declared byte count.
+        ExceptionResponse,          ///< Sensor rejected the request (high bit set on FC).
+        BufferTooSmall,             ///< Caller-provided capacity is insufficient for the payload.
+        InvalidArgument             ///< Caller-provided mathematically illegal input parameters.
+    };
+
+    enum class DataType {
+
+        Int16,
+        Uint16,
+        Int32,
+        Uint32,
+        Float32
+
+    };
+
+    enum class ByteOrder {
+
+        ABCD,                       ///< Big endian (Modbus normal).
+        CDAB,                       ///< Word-swapped big endian - most common in industrial gear.
+        BADC,                       ///< byte-swapped within each word.
+        DCBA                        ///< full reverse, little endian.
+
     };
 
 
@@ -93,6 +113,27 @@ namespace modbus_frame {
         const uint8_t* frame,
         size_t len,
         uint8_t& out_exc_code
+    );
+
+    /**
+     * @brief This function re-assembles the decoded register bytes according to the specific manufactured sensor byte order
+     * 
+     * 
+     * 
+     * @param words             Frame of the words to be decoded
+     * @param word_count        Number of words to be decoded NOTE: Word count MUST be 1 for 16-bit types, and MUST be 2 for 32-bit values
+     * @param type              Type of the value being decoded
+     * @param order             According to this order, the bytes will be reassembeled NOTE: for 16-bit types, order is irrelevant
+     * @param out               The transmitted decoded value
+     * 
+     * @return ModbusFrameError::Ok on success, or a specific error code on validation failure.
+     */
+    ModbusFrameError decode_value(
+        const uint16_t* words,
+        size_t word_count,
+        DataType type,
+        ByteOrder order,
+        float& out
     );
 
 }
