@@ -41,13 +41,17 @@ namespace modbus_transport {
     ModbusTransport::~ModbusTransport() {
 
         if (port_ != UART_NUM_MAX) {
+            ESP_LOGI(TAG, "Destroying UART driver for port: %d", port_);
             esp_err_t ret = uart_driver_delete(port_);
             if (ret != ESP_OK) {
                 ESP_LOGE(TAG, "uart_driver_delete failed: %s", esp_err_to_name(ret));
             }
             port_ = UART_NUM_MAX;
         }
-
+        else {
+            ESP_LOGI(TAG, "Destructor called on move-from (empty) object. Skipping cleanup.");
+        }
+        
     }
 
     ModbusTransport::ModbusTransport(ModbusTransport&& other) noexcept : port_(other.port_) {
@@ -73,7 +77,7 @@ namespace modbus_transport {
         uint32_t timeout_ms
     )
     {
-        
+        return ESP_OK;
     }
 
 

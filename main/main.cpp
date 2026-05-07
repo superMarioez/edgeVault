@@ -8,6 +8,7 @@
 #include "driver/spi_master.h"
 #include "sd_logger.hpp"
 #include "modbus_transport.hpp"
+#include <utility>
 
 namespace {
 const char* TAG = "edgevault";
@@ -20,22 +21,34 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "EdgeVault v0.1.0");
 
-    /* UART testing */
-    modbus_transport::ModbusTransport transport(
-        UART_NUM_1,
-        17,
-        16,
-        18,
-        9600
-    );
-
-    ESP_LOGI(TAG, "UART initialized without aborting!");
-
-    uint8_t dummy = 0xAA;
-    uart_write_bytes(UART_NUM_1, &dummy, 1);
-    uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(50));
-
+    /* ModbusTransport Destructor test */
+    {
+        modbus_transport::ModbusTransport scoped_transport(UART_NUM_1, 17, 16, 18, 9600);
+        ESP_LOGI(TAG, "Scoped transport object created successfully!");        
+    }
+    ESP_LOGI(TAG, "Exited artificial scope. Driver should be deleted by now!");
     
+    /* Move Constructor test */
+    {
+        modbus_transport::ModbusTransport transport_A(UART_NUM_1, 17, 16, 18, 9600);
+        ESP_LOGI(TAG, "transport_A created successfully!");
+        modbus_transport::ModbusTransport(std::move(transport_A));
+        ESP_LOGI(TAG, "transport_B should be owning transport_A resources by now, A is just an empty husk!");
+    }
+    ESP_LOGI(TAG, "Both objects should be destroyed by now!");
+    
+    /* Move Assignment Operator test */
+    {
+        modbus_transport::ModbusTransport transport_A(UART_NUM_1, 17, 16, 18, 9600);
+        ESP_LOGI(TAG, "transport_A created successfully!");
+        
+        modbus_transport::ModbusTransport transport_B(UART_NUM_2, 4, 5, 6, 9600);
+        ESP_LOGI(TAG, "transport_B created successfully!");
+
+        transport_B = std::move(transport_A);
+        ESP_LOGI(TAG, "transport_B should be owning transport_A resources by now");
+    }
+    ESP_LOGI(TAG, "Both objects should be destroyed by now!");
 
     
     /* initialize the flash nvs partition */
