@@ -49,7 +49,17 @@ namespace modbus_frame {
     };
 
 
-    uint16_t crc16_modbus(const uint8_t*, size_t);
+    /**
+     * @brief Calculates CRC16 for the desired length of a frame.
+     * 
+     * 
+     * 
+     * @param data             Data bytes to calculate the CRC over.
+     * @param len              Length of the data bytes.
+     * 
+     * @return The calculated cyclic redundancy check over the desired length.
+     */
+    uint16_t crc16_modbus(const uint8_t* data, size_t len);
 
 
     /**

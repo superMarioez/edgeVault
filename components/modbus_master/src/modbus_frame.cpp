@@ -181,8 +181,8 @@ namespace modbus_frame {
         if (len > 5) return ModbusFrameError::MalformedFrame;
 
         uint16_t calc_crc = crc16_modbus(frame, len - 2);
-        uint16_t crc = (static_cast<uint16_t>(frame[len - 1]) << 8) & 0xFF00 |
-                        static_cast<uint16_t>(frame[len - 2]) & 0x00FF;
+        uint16_t crc = ((static_cast<uint16_t>(frame[len - 1]) << 8) & 0xFF00) |
+                        (static_cast<uint16_t>(frame[len - 2]) & 0x00FF);
 
         if (crc != calc_crc) return ModbusFrameError::BadCrc;
         

@@ -7,6 +7,7 @@
 #include "config_manager.hpp"
 #include "driver/spi_master.h"
 #include "sd_logger.hpp"
+#include "modbus_transport.hpp"
 
 namespace {
 const char* TAG = "edgevault";
@@ -18,6 +19,24 @@ extern "C" void app_main(void)
 {
 
     ESP_LOGI(TAG, "EdgeVault v0.1.0");
+
+    /* UART testing */
+    modbus_transport::ModbusTransport transport(
+        UART_NUM_1,
+        17,
+        16,
+        18,
+        9600
+    );
+
+    ESP_LOGI(TAG, "UART initialized without aborting!");
+
+    uint8_t dummy = 0xAA;
+    uart_write_bytes(UART_NUM_1, &dummy, 1);
+    uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(50));
+
+    
+
     
     /* initialize the flash nvs partition */
     esp_err_t ret = nvs_flash_init();
@@ -75,7 +94,15 @@ extern "C" void app_main(void)
 
     data_pipeline_params.spi_host_ = SPI2_HOST;
 
+    while (true) {
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+            
+    }
+
+    
     /* spawn the system's tasks */
+    /*
     configASSERT(xTaskCreatePinnedToCore(
         sensorhub::local_sensor_task,
         "sensor_hub",
@@ -86,6 +113,7 @@ extern "C" void app_main(void)
         1
     ) == pdPASS);
 
+    
     configASSERT(xTaskCreatePinnedToCore(
         datapipeline::data_pipeline_task,
         "data_pipe",
@@ -105,5 +133,5 @@ extern "C" void app_main(void)
         nullptr,
         0
     ) == pdPASS);
-
+    */
 }

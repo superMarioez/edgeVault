@@ -79,7 +79,7 @@ namespace datapipeline {
         {
 
         // create an sd logger
-        sdlogger::SDLogger logger(dp_ctx->spi_host_, MOUNT_PATH);
+        // sdlogger::SDLogger logger(dp_ctx->spi_host_, MOUNT_PATH);
 
         char file_path[64];
         snprintf(file_path, sizeof(file_path), "%s/log.csv", MOUNT_PATH);
