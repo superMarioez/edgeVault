@@ -8,6 +8,7 @@
 #include "driver/spi_master.h"
 #include "sd_logger.hpp"
 #include "modbus_transport.hpp"
+#include "modbus_frame.hpp"
 #include <utility>
 
 namespace {
@@ -21,34 +22,16 @@ extern "C" void app_main(void)
 
     ESP_LOGI(TAG, "EdgeVault v0.1.0");
 
-    /* ModbusTransport Destructor test */
-    {
-        modbus_transport::ModbusTransport scoped_transport(UART_NUM_1, 17, 16, 18, 9600);
-        ESP_LOGI(TAG, "Scoped transport object created successfully!");        
-    }
-    ESP_LOGI(TAG, "Exited artificial scope. Driver should be deleted by now!");
-    
-    /* Move Constructor test */
-    {
-        modbus_transport::ModbusTransport transport_A(UART_NUM_1, 17, 16, 18, 9600);
-        ESP_LOGI(TAG, "transport_A created successfully!");
-        modbus_transport::ModbusTransport(std::move(transport_A));
-        ESP_LOGI(TAG, "transport_B should be owning transport_A resources by now, A is just an empty husk!");
-    }
-    ESP_LOGI(TAG, "Both objects should be destroyed by now!");
-    
-    /* Move Assignment Operator test */
-    {
-        modbus_transport::ModbusTransport transport_A(UART_NUM_1, 17, 16, 18, 9600);
-        ESP_LOGI(TAG, "transport_A created successfully!");
-        
-        modbus_transport::ModbusTransport transport_B(UART_NUM_2, 4, 5, 6, 9600);
-        ESP_LOGI(TAG, "transport_B created successfully!");
+    /* Modbus transact() test */
+    modbus_transport::ModbusTransport transport(UART_NUM_1, 17, 16, 18, 9600);
+    uint8_t req[8];
+    size_t req_len = 0;
+    modbus_frame::ModbusFrameError modbus_ret = modbus_frame::encode_read_holding_register(0x01, 0x0000, 0x0001, req, sizeof(req), &req_len);
 
-        transport_B = std::move(transport_A);
-        ESP_LOGI(TAG, "transport_B should be owning transport_A resources by now");
-    }
-    ESP_LOGI(TAG, "Both objects should be destroyed by now!");
+    uint8_t resp_buff[256];
+    size_t resp_cap = 256;
+    uint32_t timeout_ms = 1000;
+    size_t resp_len = 0;
 
     
     /* initialize the flash nvs partition */

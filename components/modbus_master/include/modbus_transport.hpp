@@ -33,11 +33,11 @@ namespace modbus_transport {
              * @param resp_len          The actual received bytes sent from the slave sensor.
              * @param timeout_ms        Maximum time for this blocking call to wait for a slave response.
              * 
-             * @return ESP_OK on success, ESP_ERR_TIMEOUT if no bytes received in window, ESP_ERR_INVALID_ARG on null pointer / zero-length, ESP_FAIL on driver-level error.
+             * @return ESP_OK on success, ESP_ERR_TIMEOUT if no bytes received in window, ESP_ERR_INVALID_ARG on null pointer / zero-length, ESP_ERR_INVALID_STATE on non-existing port, ESP_FAIL on driver-level error.
              * 
              */
             esp_err_t transact(
-                uint8_t* req,
+                const uint8_t* req,
                 size_t req_len,
                 uint8_t* resp,
                 size_t resp_cap,
